@@ -1,0 +1,4 @@
+export CARDANO_NODE_SOCKET_PATH="/Users/jonathanfischoff/prototypes/cardano-node/example/node-spo1/node.sock"
+export BLOCKCHAIN="--testnet-magic 42"
+export BLOCKCHAIN_PREFIX=local-testnet
+export POOL_KEY="/Users/jonathanfischoff/prototypes/cardano-node/example/pools/cold1.vkey"

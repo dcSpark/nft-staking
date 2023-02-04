@@ -1,0 +1,11 @@
+set -eux
+thisDir=$(dirname "$0")
+baseDir=$thisDir/..
+mainDir=$baseDir/..
+tempDir=$mainDir/temp
+assetDir=$mainDir/assets
+
+
+cardano-cli query stake-address-info \
+  --address $(cat $assetDir/$BLOCKCHAIN_PREFIX/reward-staking.addr) \
+  --testnet-magic 42
