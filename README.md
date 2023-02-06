@@ -1,23 +1,10 @@
-# NFT Swap Contract
+# NFT Based Certifying and Rewarding Contract
 
 # Usage
 
-This contract is designed to swap one token for another token and back again.
+This contract is used for registering a delegation certificate and withdrawing staking rewards. Unlike the typical registration and rewarding transactions, instead of requiring a signing key, the transactions require a specific NFT to spent in the transaction.
 
-## Locking
-
-When locking funds at the smart contract address, users will provide a datum which is deserialized to the following Haskell type:
-```haskell
-data Input = Input
-  { iTradeValue :: Value
-  }
-```
-
-The `iTradeValue` should be the NFT that is necessary to unlock the currently locked NFT.
-
-## Swapping
-
-The `Swap` redeemer to swap one NFT for another. After the swap, the tokens specified by `iTradeValue` need to be stored on the script address with a datum that has `iTradeValue` specifying the tokens that were previously stored on the script address.
+The redeemer for the transactions can be any value because it is ignored by the smart contract.
 
 # Assets
 
@@ -35,7 +22,14 @@ Compliation has been validated with GHC 8.10.7.
 To compile call the compile script:
 
 ```bash
-./scripts/compile
+./scripts/compile.sh
+```
+
+The NFT that is used for unlocking is configured in the compile script and passed to the smart contract creation app `create-sc`, with the following parameters:
+
+```bash
+--nft-policy-id=POLICY_ID
+--nft-token-name=TOKEN_NAME_ASCII
 ```
 
 # Example Transaction
@@ -61,14 +55,6 @@ Run:
 ./scripts/wallets/make-all-wallets.sh
 ```
 
-## Test Datum Creation
-
-Run:
-
-```bash
-./scripts/generate-datums
-```
-
 ## Environment Variable Setup
 
 To setup the proper flags and socket variables for the test transactions, one must source the appropiate environment variables.
@@ -92,11 +78,5 @@ There is a single test script, which performs a number of integration tests func
 To execute the integration test, run:
 
 ```bash
-./scripts/tests/lock-update.sh
-```
-
-This tests the happy path. To test additional failure cases, restart your test environement and run
-
-```bash
-./scripts/tests/lock-double-update.sh
+./scripts/tests/register-and-withdraw.sh
 ```
