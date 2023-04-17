@@ -1,11 +1,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
-import           Cardano.Api
 import           Canonical.Reward
-import           Plutus.V1.Ledger.Value
+import           PlutusLedgerApi.V1.Value
 import           Options.Generic
 import           Data.String
+import qualified Data.ByteString.Short as SBS
+import qualified Codec.CBOR.Encoding as CBOR
+import qualified Codec.CBOR.Write as CBOR
+import qualified Data.ByteString.Builder as BS
 
 instance ParseField TokenName where
   parseField x y z w = fromString <$> parseField x y z w
@@ -54,7 +59,11 @@ run Options {..} = do
       , rcNftTokenName = nftTokenName
       }
 
-  result <- writeFileTextEnvelope outputFile Nothing (reward cfg)
-  case result of
-    Left err -> print $ displayError err
-    Right () -> putStrLn $ "wrote validator to file " ++ outputFile
+    hex =
+      BS.byteStringHex
+      $ CBOR.toStrictByteString
+      $ CBOR.encodeBytes
+      $ SBS.fromShort
+      $ reward cfg
+
+  BS.writeFile outputFile ("{\"type\":\"PlutusScriptV2\",\"description\":\"\",\"cborHex\":\"" <> hex <> "\"}")

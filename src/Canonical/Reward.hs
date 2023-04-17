@@ -1,14 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds #-}
 
 module Canonical.Reward where
 
-import           Cardano.Api.Shelley (PlutusScript (..), PlutusScriptV2)
-import           Codec.Serialise
-import qualified Data.ByteString.Lazy as LB
-import qualified Data.ByteString.Short as SBS
-import           Plutus.V1.Ledger.Value
-import           Plutus.V2.Ledger.Contexts
-import           Plutus.V1.Ledger.Scripts
+import           PlutusLedgerApi.V1.Value
+import           PlutusLedgerApi.V2.Contexts
+import           PlutusLedgerApi.Common
 import           PlutusTx
 import           PlutusTx.Prelude hiding (Semigroup (..), unless)
 
@@ -17,9 +17,9 @@ data RewardConfig = RewardConfig
   , rcNftTokenName :: TokenName
   }
 
-type Action = BuiltinData
-
 makeLift ''RewardConfig
+
+type Action = BuiltinData
 
 mkValidator :: RewardConfig -> Action -> ScriptContext -> Bool
 mkValidator
@@ -53,8 +53,8 @@ wrapValidator
 wrapValidator cfg a b
   = check (mkValidator cfg (unsafeFromBuiltinData a) (unsafeFromBuiltinData b))
 
-validator :: RewardConfig -> StakeValidator
-validator cfg = mkStakeValidatorScript $
+validator :: RewardConfig -> CompiledCode (BuiltinData -> BuiltinData -> ())
+validator cfg =
     $$(compile [|| wrapValidator ||])
     `applyCode`
       liftCode cfg
@@ -62,10 +62,5 @@ validator cfg = mkStakeValidatorScript $
 -------------------------------------------------------------------------------
 -- Entry point
 -------------------------------------------------------------------------------
-reward :: RewardConfig -> PlutusScript PlutusScriptV2
-reward
-  = PlutusScriptSerialised
-  . SBS.toShort
-  . LB.toStrict
-  . serialise
-  . validator
+reward :: RewardConfig -> SerialisedScript
+reward = serialiseCompiledCode . validator
